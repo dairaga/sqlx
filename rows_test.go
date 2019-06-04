@@ -2,7 +2,6 @@ package sqlx
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -10,12 +9,6 @@ import (
 	gsql "database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
-)
-
-const dsnFmt = "%s:%s@tcp(%s:%d)/%s?%s=%s&%s=%s"
-
-var (
-	dsn = fmt.Sprintf(dsnFmt, "test", "test", "127.0.0.1", 3306, "mytest", "charset", "utf8mb4,utf8", "parseTime", "true")
 )
 
 var (
@@ -321,7 +314,7 @@ func TestToRowsAllNull(t *testing.T) {
 	}
 }
 
-func TestToBytes(t *testing.T) {
+func TestData(t *testing.T) {
 	db, err := gsql.Open("mysql", dsn)
 
 	if err != nil {
@@ -341,16 +334,6 @@ func TestToBytes(t *testing.T) {
 		return
 	}
 
-	//tmp, err := rs1.r.toBytes()
-	//if err != nil {
-	//	t.Errorf("to bytes: %v", err)
-	//	return
-	//}
-	ans1 := `{"c01":"AQ==","c01_1":"AQ==","c02_s":-2,"c02_u":2,"c03":1,"c04_s":-4,"c04_u":4,"c05_s":-5,"c05_u":5,"c06_s":-6,"c06_u":6,"c07_s":-7,"c07_u":7,"c08_s":-8,"c08_u":8,"c09_s":-9,"c09_u":9,"c10_s":-10,"c10_u":10,"c11":"2019-01-01T00:00:00Z","c12":"MTIzOjA0OjA1","c13":2019,"c14":"2014-09-23T10:01:02Z","c15":"2014-09-23T10:01:02Z","c16":"C16","c17":"C17","c18":"QzE4AAAAAAAAAA==","c19":"QzE5","c20":"QzIw","c21":"C21","c22":"QzIy","c23":"C23","c24":"QzI0","c25":"C25","c26":"QzI2","c27":"C27","c28":"a","c29":"b"}`
-	//if string(tmp) != ans1 {
-	//	t.Errorf("json string should be \n%s\n but \n%s", ans1, string(tmp))
-	//}
-
 	d1, err := rs1.r.Data()
 	if err != nil {
 		t.Errorf("to internal data: %v", err)
@@ -359,8 +342,8 @@ func TestToBytes(t *testing.T) {
 	if err != nil {
 		t.Errorf("marshal: %v", err)
 	}
-	if string(tmp) != ans1 {
-		t.Errorf("json string should be \n%s\n but \n%s", ans1, string(tmp))
+	if string(tmp) != test1Row {
+		t.Errorf("json string should be \n%s\n but \n%s", test1Row, string(tmp))
 	}
 
 	rs2, err := Wrap(db.Query("select * from test2"))
@@ -373,15 +356,7 @@ func TestToBytes(t *testing.T) {
 		t.Errorf("no data")
 		return
 	}
-	//tmp, err = rs2.r.toBytes()
-	//if err != nil {
-	//	t.Errorf("to bytes: %v", err)
-	//	return
-	//}
-	ans2 := `{"c01":null,"c01_1":null,"c02_s":0,"c02_u":0,"c03":0,"c04_s":0,"c04_u":0,"c05_s":0,"c05_u":0,"c06_s":0,"c06_u":0,"c07_s":0,"c07_u":0,"c08_s":0,"c08_u":0,"c09_s":0,"c09_u":0,"c10_s":0,"c10_u":0,"c11":"0001-01-01T00:00:00Z","c12":null,"c13":0,"c14":"0001-01-01T00:00:00Z","c15":"2014-09-23T10:01:02Z","c16":"","c17":"","c18":null,"c19":null,"c20":null,"c21":"","c22":null,"c23":"","c24":null,"c25":"","c26":null,"c27":"","c28":"","c29":""}`
-	//if string(tmp) != ans2 {
-	//	t.Errorf("json string should be \n%s\n but \n%s", ans2, string(tmp))
-	//}
+
 	d2, err := rs2.r.Data()
 	if err != nil {
 		t.Errorf("to internal data: %v", err)
@@ -390,7 +365,112 @@ func TestToBytes(t *testing.T) {
 	if err != nil {
 		t.Errorf("marshal: %v", err)
 	}
-	if string(tmp) != ans2 {
-		t.Errorf("json string should be \n%s\n but \n%s", ans2, string(tmp))
+	if string(tmp) != test2Row {
+		t.Errorf("json string should be \n%s\n but \n%s", test2Row, string(tmp))
+	}
+}
+
+func TestMarshal(t *testing.T) {
+	db, err := gsql.Open("mysql", dsn)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer db.Close()
+
+	rs1, err := Wrap(db.Query("select * from test1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs1.Close()
+
+	if !rs1.Next() {
+		t.Errorf("no data")
+		return
+	}
+
+	d1 := &TestStruct1{}
+	err = rs1.r.Unmarshal(d1)
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err := json.Marshal(d1)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != s1 {
+		t.Errorf("json string should be \n%s\n but \n%s", s1, string(tmp))
+	}
+
+	rs2, err := Wrap(db.Query("select * from test2"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs2.Close()
+
+	if !rs2.Next() {
+		t.Errorf("no data")
+		return
+	}
+
+	err = rs2.r.Unmarshal(d1)
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err = json.Marshal(d1)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != s2 {
+		t.Errorf("json string should be \n%s\n but \n%s", s2, string(tmp))
+	}
+}
+
+func TestMarshalAll(t *testing.T) {
+	db, err := gsql.Open("mysql", dsn)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer db.Close()
+
+	rs1, err := Wrap(db.Query("select * from test1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs1.Close()
+
+	d1 := []TestStruct1{}
+
+	err = rs1.UnmarshalAll(&d1)
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err := json.Marshal(d1)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != s1Slice {
+		t.Errorf("json string should be \n%s\n but \n%s", s1Slice, string(tmp))
+	}
+
+	rs2, err := Wrap(db.Query("select * from test2"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs2.Close()
+
+	err = rs2.UnmarshalAll(&d1)
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err = json.Marshal(d1)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != s2Slice {
+		t.Errorf("json string should be \n%s\n but \n%s", s2Slice, string(tmp))
 	}
 }

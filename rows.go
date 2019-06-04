@@ -13,12 +13,12 @@ var (
 
 // Rows ...
 type Rows struct {
-	x       *sql.Rows
-	s       reflect.Type
-	names   []string
-	types   []reflect.Type
-	lastErr error
-	r       *Row
+	x     *sql.Rows
+	s     reflect.Type
+	names []string
+	types []reflect.Type
+	//lastErr error
+	r *Row
 }
 
 // Wrap ...
@@ -96,16 +96,18 @@ func toRows(rows *sql.Rows) (*Rows, error) {
 
 // Next ...
 func (rs *Rows) Next() bool {
-	if rs.lastErr != nil {
-		return false
-	}
+	//if rs.lastErr != nil {
+	//	return false
+	//}
+
 	if !rs.x.Next() {
 		return false
 	}
 
 	rs.r = &Row{rows: rs}
 	if err := rs.r.scan(); err != nil {
-		rs.lastErr = err
+		//rs.lastErr = err
+		rs.r.err = err
 		return false
 	}
 
@@ -119,10 +121,9 @@ func (rs *Rows) Close() error {
 
 // Err returns error of Rows.
 func (rs *Rows) Err() error {
-	if rs.lastErr != nil {
-		return rs.lastErr
-	}
-
+	//if rs.lastErr != nil {
+	//	return rs.lastErr
+	//}
 	return rs.x.Err()
 }
 
@@ -152,6 +153,36 @@ func (rs *Rows) All() ([]interface{}, error) {
 		ret = append(ret, s)
 	}
 	return ret, nil
+}
+
+// UnmarshalAll ...
+func (rs *Rows) UnmarshalAll(x interface{}) error {
+	rv := reflect.ValueOf(x)
+
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
+		return fmt.Errorf("x must be Ptr of Slice")
+	}
+
+	rv = rv.Elem()
+
+	if rv.Kind() != reflect.Slice {
+		return fmt.Errorf("x must be Ptr of Slice")
+	}
+
+	newV := reflect.MakeSlice(rv.Type(), 0, 0)
+
+	for rs.Next() {
+		d := reflect.New(rv.Type().Elem())
+		if err := rs.r.Unmarshal(d.Interface()); err != nil {
+			return err
+		}
+
+		newV = reflect.Append(newV, d.Elem())
+	}
+
+	rv.Set(newV)
+
+	return nil
 }
 
 // GetInt ...
@@ -244,13 +275,14 @@ func (rs *Rows) GetDuration(name string, def ...time.Duration) time.Duration {
 // Row ...
 type Row struct {
 	rows *Rows
+	err  error
 	data map[string]interface{}
 	s    interface{}
 }
 
 func (r *Row) scan() error {
-	if err := r.rows.x.Err(); err != nil {
-		return err
+	if r.err != nil {
+		return r.err
 	}
 
 	size := len(r.rows.types)
@@ -272,6 +304,10 @@ func (r *Row) scan() error {
 }
 
 func (r *Row) get(name string) interface{} {
+	if r.err != nil {
+		return nil
+	}
+
 	x, ok := r.data[name]
 	if !ok {
 		x, ok = r.data[toSnake(name)]
@@ -511,15 +547,15 @@ func (r *Row) GetDuration(name string, def ...time.Duration) time.Duration {
 
 // Unmarshal ...
 func (r *Row) Unmarshal(x interface{}) error {
-	//if x == nil {
-	//	return r._unmarshal("", reflect.New(r.rows.s).Interface())
-	//}
-
 	return r._unmarshal("", x)
 }
 
 // Data ...
 func (r *Row) Data() (interface{}, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+
 	x := reflect.New(r.rows.s).Interface()
 	if err := r.Unmarshal(x); err != nil {
 		return nil, err
@@ -528,6 +564,9 @@ func (r *Row) Data() (interface{}, error) {
 }
 
 func (r *Row) _unmarshal(prefix string, d interface{}) (err error) {
+	if r.err != nil {
+		return r.err
+	}
 	defer func() {
 		if pr := recover(); pr != nil {
 			err = fmt.Errorf("%v", pr)
