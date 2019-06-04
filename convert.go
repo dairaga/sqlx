@@ -135,8 +135,13 @@ func _castToBoolE(x interface{}) (bool, error) {
 		return !(0 == v), nil
 	case string:
 		return strconv.ParseBool(v)
+	case []byte:
+		if len(v) == 1 {
+			return !(0 == v[0]), nil
+		}
+		return false, fmt.Errorf("%v can not convert to bool", v)
 	default:
-		return false, fmt.Errorf("%v can convert to bool", v)
+		return false, fmt.Errorf("%v can not convert to bool", v)
 	}
 }
 
@@ -158,24 +163,49 @@ func _castToBytesE(x interface{}) ([]byte, error) {
 		ret := make([]byte, 8)
 		binary.LittleEndian.PutUint64(ret, uint64(v))
 		return ret, nil
+	case int:
+		ret := make([]byte, 8)
+		binary.LittleEndian.PutUint64(ret, uint64(v))
+		return ret, nil
 	case uint8:
 		return []byte{v}, nil
+	case int8:
+		return []byte{uint8(v)}, nil
 	case uint16:
 		ret := make([]byte, 2)
 		binary.LittleEndian.PutUint16(ret, v)
+		return ret, nil
+	case int16:
+		ret := make([]byte, 2)
+		binary.LittleEndian.PutUint16(ret, uint16(v))
 		return ret, nil
 	case uint32:
 		ret := make([]byte, 4)
 		binary.LittleEndian.PutUint32(ret, v)
 		return ret, nil
+	case int32:
+		ret := make([]byte, 4)
+		binary.LittleEndian.PutUint32(ret, uint32(v))
+		return ret, nil
 	case uint64:
 		ret := make([]byte, 8)
 		binary.LittleEndian.PutUint64(ret, v)
 		return ret, nil
+	case int64:
+		ret := make([]byte, 8)
+		binary.LittleEndian.PutUint64(ret, uint64(v))
+		return ret, nil
 	case string:
 		return []byte(v), nil
+	case bool:
+		if v {
+			return []byte{1}, nil
+		}
+		return []byte{0}, nil
+	case time.Time:
+		return v.MarshalBinary()
 	default:
-		return nil, fmt.Errorf("%v can convert to bool", v)
+		return nil, fmt.Errorf("%v can convert to bytes", v)
 	}
 }
 

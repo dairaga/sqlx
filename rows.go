@@ -72,18 +72,17 @@ func toRows(rows *sql.Rows) (*Rows, error) {
 		default:
 			t := col.ScanType()
 			rs.types[i] = t
-			switch t {
-			case nullBoolType:
+			if t.AssignableTo(nullBoolType) {
 				f.Type = boolType
-			case nullFloat64Type:
+			} else if t.AssignableTo(nullFloat64Type) {
 				f.Type = float64Type
-			case nullInt64Type:
+			} else if t.AssignableTo(nullInt64Type) {
 				f.Type = int64Type
-			case nullStringType:
+			} else if t.AssignableTo(nullStringType) {
 				f.Type = stringType
-			case rawBytesType:
+			} else if t.AssignableTo(rawBytesType) {
 				f.Type = bytesType
-			default:
+			} else {
 				f.Type = t
 			}
 		}
@@ -137,7 +136,7 @@ func (rs *Rows) AllRow() ([]*Row, error) {
 }
 
 // All ...
-/*func (rs *Rows) All() ([]interface{}, error) {
+func (rs *Rows) All() ([]interface{}, error) {
 	tmp, err := rs.AllRow()
 
 	if err != nil {
@@ -146,29 +145,14 @@ func (rs *Rows) AllRow() ([]*Row, error) {
 
 	var ret []interface{}
 	for _, r := range tmp {
-		s, err := r.ToStruct()
+		s, err := r.Data()
 		if err != nil {
 			return nil, err
 		}
 		ret = append(ret, s)
 	}
 	return ret, nil
-}*/
-
-// UnmarshalAll ...
-/*func (rs *Rows) UnmarshalAll(x interface{}) error {
-	all, err := rs.All()
-	if err != nil {
-		return err
-	}
-
-	databytes, err := json.Marshal(all)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(databytes, x)
-}*/
+}
 
 // GetInt ...
 func (rs *Rows) GetInt(name string, def ...int) int {
@@ -259,10 +243,9 @@ func (rs *Rows) GetDuration(name string, def ...time.Duration) time.Duration {
 
 // Row ...
 type Row struct {
-	rows      *Rows
-	data      map[string]interface{}
-	databytes []byte
-	s         interface{}
+	rows *Rows
+	data map[string]interface{}
+	s    interface{}
 }
 
 func (r *Row) scan() error {
@@ -493,7 +476,7 @@ func (r *Row) GetBool(name string, def ...bool) bool {
 	}
 	x := r.get(name)
 	if x == nil {
-		fmt.Printf("get %s is nil\n", name)
+		fmt.Printf("GetBool %s is nil", name)
 		return v
 	}
 	return toBool(x, v)
@@ -525,52 +508,6 @@ func (r *Row) GetDuration(name string, def ...time.Duration) time.Duration {
 	}
 	return toDuration(x, v)
 }
-
-/*
-func (r *Row) zero(name string) interface{} {
-	f, ok := r.rows.s.FieldByName(toCamel(name))
-	if !ok {
-		return nil
-	}
-
-	return reflect.Zero(f.Type).Interface()
-}
-*/
-/*
-// ToBytes ...
-func (r *Row) toBytes() ([]byte, error) {
-	if r.databytes != nil {
-		return r.databytes, nil
-	}
-
-	x := make(map[string]interface{})
-
-	for k, v := range r.data {
-		switch rv := v.(type) {
-		case sql.NullBool:
-			x[k] = rv.Bool
-		case sql.NullFloat64:
-			x[k] = rv.Float64
-		case sql.NullInt64:
-			x[k] = rv.Int64
-		case sql.NullString:
-			x[k] = rv.String
-		case driver.Valuer:
-			if y, err := rv.Value(); err != nil || y == nil {
-				x[k] = r.zero(k)
-			} else {
-				x[k] = y
-			}
-		default:
-			x[k] = v
-		}
-	}
-
-	var err error
-	r.databytes, err = json.Marshal(x)
-	return r.databytes, err
-}
-*/
 
 // Unmarshal ...
 func (r *Row) Unmarshal(x interface{}) error {
@@ -662,35 +599,3 @@ func (r *Row) _unmarshal(prefix string, d interface{}) (err error) {
 	}
 	return nil
 }
-
-/*
-// ToStruct ...
-func (r *Row) ToStruct() (interface{}, error) {
-	if r.s != nil {
-		return r.s, nil
-	}
-
-	databytes, err := r.Marshal()
-	if err != nil {
-		return nil, err
-	}
-
-	x := reflect.New(r.rows.s)
-	err = json.Unmarshal(databytes, x.Interface())
-	if err != nil {
-		return nil, err
-	}
-	r.s = x
-	return r.s, nil
-}
-
-// Unmarshal ...
-func (r *Row) Unmarshal(x interface{}) error {
-	databytes, err := r.Marshal()
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(databytes, x)
-}
-*/
