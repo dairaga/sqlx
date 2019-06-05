@@ -21,8 +21,8 @@ type Rows struct {
 	r *Row
 }
 
-// Wrap ...
-func Wrap(rows *sql.Rows, err error) (*Rows, error) {
+// WrapRows ...
+func WrapRows(rows *sql.Rows, err error) (*Rows, error) {
 	if err != nil {
 		return nil, err
 	}

@@ -100,7 +100,7 @@ func TestToRowsAllNotNull(t *testing.T) {
 
 	defer db.Close()
 
-	rs, err := Wrap(db.Query("select * from test1"))
+	rs, err := WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -214,7 +214,7 @@ func TestToRowsAllNull(t *testing.T) {
 
 	defer db.Close()
 
-	rs, err := Wrap(db.Query("select * from test2"))
+	rs, err := WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -323,7 +323,7 @@ func TestData(t *testing.T) {
 
 	defer db.Close()
 
-	rs1, err := Wrap(db.Query("select * from test1"))
+	rs1, err := WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -346,7 +346,7 @@ func TestData(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", test1Row, string(tmp))
 	}
 
-	rs2, err := Wrap(db.Query("select * from test2"))
+	rs2, err := WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -379,7 +379,7 @@ func TestMarshal(t *testing.T) {
 
 	defer db.Close()
 
-	rs1, err := Wrap(db.Query("select * from test1"))
+	rs1, err := WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -403,7 +403,7 @@ func TestMarshal(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", s1, string(tmp))
 	}
 
-	rs2, err := Wrap(db.Query("select * from test2"))
+	rs2, err := WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -436,7 +436,7 @@ func TestMarshalAll(t *testing.T) {
 
 	defer db.Close()
 
-	rs1, err := Wrap(db.Query("select * from test1"))
+	rs1, err := WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -456,7 +456,7 @@ func TestMarshalAll(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", s1Slice, string(tmp))
 	}
 
-	rs2, err := Wrap(db.Query("select * from test2"))
+	rs2, err := WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}

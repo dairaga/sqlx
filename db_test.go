@@ -15,7 +15,7 @@ func TestDB(t *testing.T) {
 
 	defer db.Close()
 
-	result, err := db.Find("select * from test1")
+	result, err := db.Data("select * from test1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func TestDB(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", s1, string(resultBytes))
 	}
 
-	result, err = db.Find("select * from test2")
+	result, err = db.Data("select * from test2")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TestDBAll(t *testing.T) {
 
 	defer db.Close()
 
-	all, err := db.XQueryAll("select * from test1")
+	all, err := db.All("select * from test1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func TestDBAll(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", s1Slice, string(allbytes))
 	}
 
-	all, err = db.XQueryAll("select * from test2")
+	all, err = db.All("select * from test2")
 	if err != nil {
 		t.Fatal(err)
 	}

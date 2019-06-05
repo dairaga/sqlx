@@ -19,19 +19,19 @@ func WrapDB(db *sql.DB, err error) (*DB, error) {
 	return &DB{db}, nil
 }
 
-// XQuery ...
-func (db *DB) XQuery(query string, args ...interface{}) (*Rows, error) {
-	return Wrap(db.DB.Query(query, args...))
+// Find ...
+func (db *DB) Find(query string, args ...interface{}) (*Rows, error) {
+	return WrapRows(db.DB.Query(query, args...))
 }
 
-// XQueryContext ...
-func (db *DB) XQueryContext(ctx context.Context, query string, args ...interface{}) (*Rows, error) {
-	return Wrap(db.DB.QueryContext(ctx, query, args...))
+// FindContext ...
+func (db *DB) FindContext(ctx context.Context, query string, args ...interface{}) (*Rows, error) {
+	return WrapRows(db.DB.QueryContext(ctx, query, args...))
 }
 
-// XQueryAllContext ...
-func (db *DB) XQueryAllContext(ctx context.Context, query string, args ...interface{}) ([]interface{}, error) {
-	rs, err := db.XQueryContext(ctx, query, args...)
+// AllContext ...
+func (db *DB) AllContext(ctx context.Context, query string, args ...interface{}) ([]interface{}, error) {
+	rs, err := db.FindContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +39,14 @@ func (db *DB) XQueryAllContext(ctx context.Context, query string, args ...interf
 	return rs.All()
 }
 
+// All ...
+func (db *DB) All(query string, args ...interface{}) ([]interface{}, error) {
+	return db.AllContext(context.Background(), query, args...)
+}
+
 // UnmarshalAllContext ...
 func (db *DB) UnmarshalAllContext(ctx context.Context, x interface{}, query string, args ...interface{}) error {
-	rs, err := db.XQueryContext(ctx, query, args...)
+	rs, err := db.FindContext(ctx, query, args...)
 	if err != nil {
 		return err
 	}
@@ -54,14 +59,9 @@ func (db *DB) UnmarshalAll(x interface{}, query string, args ...interface{}) err
 	return db.UnmarshalAllContext(context.Background(), x, query, args...)
 }
 
-// XQueryAll ...
-func (db *DB) XQueryAll(query string, args ...interface{}) ([]interface{}, error) {
-	return db.XQueryAllContext(context.Background(), query, args...)
-}
-
-// XQueryRowContext ...
-func (db *DB) XQueryRowContext(ctx context.Context, query string, args ...interface{}) *Row {
-	rs, err := db.XQueryContext(ctx, query, args...)
+// FindRowContext ...
+func (db *DB) FindRowContext(ctx context.Context, query string, args ...interface{}) *Row {
+	rs, err := db.FindContext(ctx, query, args...)
 	r := &Row{rows: rs, err: err}
 	if err == nil {
 		rs.Next()
@@ -70,25 +70,25 @@ func (db *DB) XQueryRowContext(ctx context.Context, query string, args ...interf
 	return r
 }
 
-// XQueryRow ...
-func (db *DB) XQueryRow(query string, args ...interface{}) *Row {
-	return db.XQueryRowContext(context.Background(), query, args...)
+// FindRow ...
+func (db *DB) FindRow(query string, args ...interface{}) *Row {
+	return db.FindRowContext(context.Background(), query, args...)
 }
 
-// FindContext ...
-func (db *DB) FindContext(ctx context.Context, query string, args ...interface{}) (interface{}, error) {
-	r := db.XQueryRowContext(ctx, query, args...)
+// DataContext ...
+func (db *DB) DataContext(ctx context.Context, query string, args ...interface{}) (interface{}, error) {
+	r := db.FindRowContext(ctx, query, args...)
 	return r.Data()
 }
 
-// Find ...
-func (db *DB) Find(query string, args ...interface{}) (interface{}, error) {
-	return db.FindContext(context.Background(), query, args...)
+// Data ...
+func (db *DB) Data(query string, args ...interface{}) (interface{}, error) {
+	return db.DataContext(context.Background(), query, args...)
 }
 
 // UnmarshalContext ...
 func (db *DB) UnmarshalContext(ctx context.Context, x interface{}, query string, args ...interface{}) error {
-	r := db.XQueryRowContext(ctx, query, args...)
+	r := db.FindRowContext(ctx, query, args...)
 	return r.Unmarshal(x)
 }
 
