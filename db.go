@@ -66,6 +66,7 @@ func (db *DB) FindRowContext(ctx context.Context, query string, args ...interfac
 	if err == nil {
 		rs.Next()
 		r.scan()
+		rs.Close()
 	}
 	return r
 }

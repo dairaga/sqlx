@@ -129,6 +129,7 @@ func (rs *Rows) Err() error {
 
 // AllRow ...
 func (rs *Rows) AllRow() ([]*Row, error) {
+	defer rs.Close()
 	var ret []*Row
 	for rs.Next() {
 		ret = append(ret, rs.r)
@@ -157,6 +158,7 @@ func (rs *Rows) All() ([]interface{}, error) {
 
 // UnmarshalAll ...
 func (rs *Rows) UnmarshalAll(x interface{}) error {
+	defer rs.Close()
 	rv := reflect.ValueOf(x)
 
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
