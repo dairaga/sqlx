@@ -370,7 +370,7 @@ func TestData(t *testing.T) {
 	}
 }
 
-func TestMarshal(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	db, err := gsql.Open("mysql", dsn)
 
 	if err != nil {
@@ -427,7 +427,54 @@ func TestMarshal(t *testing.T) {
 	}
 }
 
-func TestMarshalAll(t *testing.T) {
+func TestAll(t *testing.T) {
+	db, err := gsql.Open("mysql", dsn)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer db.Close()
+
+	rs1, err := WrapRows(db.Query("select * from test1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs1.Close()
+
+	all, err := rs1.All()
+
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err := json.Marshal(all)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != test1Rows {
+		t.Errorf("json string should be \n%s\n but \n%s", test1Rows, string(tmp))
+	}
+
+	rs2, err := WrapRows(db.Query("select * from test2"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs2.Close()
+
+	all, err = rs2.All()
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err = json.Marshal(all)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != test2Rows {
+		t.Errorf("json string should be \n%s\n but \n%s", test2Rows, string(tmp))
+	}
+}
+
+func TestUnmarshalAll(t *testing.T) {
 	db, err := gsql.Open("mysql", dsn)
 
 	if err != nil {
