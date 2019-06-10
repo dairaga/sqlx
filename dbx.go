@@ -112,7 +112,7 @@ func (db *DBX) InnerJoinOn(table string, condition string) *DBX {
 
 // Where ...
 func (db *DBX) Where(condition string) *DBX {
-	db.Where(condition)
+	db.cmd.Where(condition)
 	return db
 }
 
