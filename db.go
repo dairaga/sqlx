@@ -64,8 +64,11 @@ func (db *DB) FindRowContext(ctx context.Context, query string, args ...interfac
 	rs, err := db.FindContext(ctx, query, args...)
 	r := &Row{rows: rs, err: err}
 	if err == nil {
-		rs.Next()
-		r.scan()
+		if rs.Next() {
+			r.scan()
+		} else {
+			r.err = sql.ErrNoRows
+		}
 		rs.Close()
 	}
 	return r
