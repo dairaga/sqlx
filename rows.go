@@ -282,6 +282,15 @@ type Row struct {
 	s    interface{}
 }
 
+// Err ...
+func (r *Row) Err() error {
+	if r.err != nil {
+		return r.err
+	}
+
+	return nil
+}
+
 func (r *Row) scan() error {
 	if r.err != nil {
 		return r.err
