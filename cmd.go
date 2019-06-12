@@ -438,3 +438,12 @@ func (c *Cmd) Raw(any string) *Cmd {
 func (c *Cmd) String() string {
 	return c.sb.String()
 }
+
+// SQL ...
+func (c *Cmd) SQL(sqlcmds ...string) string {
+	if len(sqlcmds) > 0 {
+		c.Reset()
+		c.Raw(strings.Join(sqlcmds, ";"))
+	}
+	return c.String()
+}

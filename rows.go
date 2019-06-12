@@ -17,8 +17,7 @@ type Rows struct {
 	s     reflect.Type
 	names []string
 	types []reflect.Type
-	//lastErr error
-	r *Row
+	r     *Row
 }
 
 // WrapRows ...
@@ -106,8 +105,6 @@ func (rs *Rows) Next() bool {
 
 	rs.r = &Row{rows: rs}
 	if err := rs.r.scan(); err != nil {
-		//rs.lastErr = err
-		rs.r.err = err
 		return false
 	}
 
@@ -121,9 +118,6 @@ func (rs *Rows) Close() error {
 
 // Err returns error of Rows.
 func (rs *Rows) Err() error {
-	//if rs.lastErr != nil {
-	//	return rs.lastErr
-	//}
 	return rs.x.Err()
 }
 
@@ -282,6 +276,21 @@ type Row struct {
 	s    interface{}
 }
 
+// WrapRow ...
+func WrapRow(rs *Rows, err error) *Row {
+	r := &Row{rows: rs, err: err}
+	if err == nil {
+		if rs.Next() {
+			r.scan()
+		} else {
+			r.err = sql.ErrNoRows
+		}
+		rs.Close()
+	}
+
+	return r
+}
+
 // Err ...
 func (r *Row) Err() error {
 	if r.err != nil {
@@ -303,6 +312,7 @@ func (r *Row) scan() error {
 	}
 
 	if err := r.rows.x.Scan(vals...); err != nil {
+		r.err = err
 		return err
 	}
 

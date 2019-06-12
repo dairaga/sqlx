@@ -1,72 +1,113 @@
 package sqlx
 
 import (
-	"database/sql"
 	"encoding/json"
 	"testing"
 )
 
-func TestDB(t *testing.T) {
-	db, err := WrapDB(sql.Open("mysql", dsn))
+func TestDBXData(t *testing.T) {
+	db, err := OpenDB("mysql", dsn)
 
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	defer db.Close()
 
-	result, err := db.Data("select * from test1")
+	d1, err := db.Reset().Select().From("test1").Data()
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("to internal data: %v", err)
 	}
-
-	resultBytes, err := json.Marshal(result)
+	tmp, err := json.Marshal(d1)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != test1Row {
+		t.Errorf("json string should be \n%s\n but \n%s", test1Row, string(tmp))
 	}
 
-	if string(resultBytes) != test1Row {
-		t.Errorf("json string should be \n%s\n but \n%s", test1Row, string(resultBytes))
-	}
-
-	data := TestStruct1{}
-
-	if err := db.Unmarshal(&data, "select * from test1"); err != nil {
-		t.Fatal(err)
-	}
-
-	resultBytes, err = json.Marshal(data)
-	if string(resultBytes) != s1 {
-		t.Errorf("json string should be \n%s\n but \n%s", s1, string(resultBytes))
-	}
-
-	result, err = db.Data("select * from test2")
+	d2, err := db.Reset().Select().From("test2").Data()
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("to internal data: %v", err)
 	}
-
-	resultBytes, err = json.Marshal(result)
+	tmp, err = json.Marshal(d2)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("marshal: %v", err)
 	}
-
-	if string(resultBytes) != test2Row {
-		t.Errorf("json string should be \n%s\n but \n%s", test2Row, string(resultBytes))
+	if string(tmp) != test2Row {
+		t.Errorf("json string should be \n%s\n but \n%s", test2Row, string(tmp))
 	}
-
-	if err := db.Unmarshal(&data, "select * from test2"); err != nil {
-		t.Fatal(err)
-	}
-
-	resultBytes, err = json.Marshal(data)
-	if string(resultBytes) != s2 {
-		t.Errorf("json string should be \n%s\n but \n%s", s2, string(resultBytes))
-	}
-
 }
 
-func TestDBAll(t *testing.T) {
-	db, err := WrapDB(sql.Open("mysql", dsn))
+func TestDBXUnmarshal(t *testing.T) {
+	db, err := OpenDB("mysql", dsn)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	d1 := &TestStruct1{}
+	err = db.Reset().Select().From("test1").Unmarshal(d1)
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err := json.Marshal(d1)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != s1 {
+		t.Errorf("json string should be \n%s\n but \n%s", s1, string(tmp))
+	}
+
+	err = db.Reset().Select().From("test2").Unmarshal(d1)
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err = json.Marshal(d1)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != s2 {
+		t.Errorf("json string should be \n%s\n but \n%s", s2, string(tmp))
+	}
+}
+
+func TestDBXAll(t *testing.T) {
+	db, err := OpenDB("mysql", dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer db.Close()
+
+	all, err := db.Reset().Select().From("test1").All()
+
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err := json.Marshal(all)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != test1Rows {
+		t.Errorf("json string should be \n%s\n but \n%s", test1Rows, string(tmp))
+	}
+
+	all, err = db.Reset().Select().From("test2").All()
+	if err != nil {
+		t.Errorf("to internal data: %v", err)
+	}
+	tmp, err = json.Marshal(all)
+	if err != nil {
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != test2Rows {
+		t.Errorf("json string should be \n%s\n but \n%s", test2Rows, string(tmp))
+	}
+}
+
+func TestDBXUnmarshalAll(t *testing.T) {
+	db, err := OpenDB("mysql", dsn)
 
 	if err != nil {
 		t.Fatal(err)
@@ -74,52 +115,29 @@ func TestDBAll(t *testing.T) {
 
 	defer db.Close()
 
-	all, err := db.All("select * from test1")
+	d1 := []TestStruct1{}
+
+	err = db.Reset().Select().From("test1").UnmarshalAll(&d1)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("to internal data: %v", err)
 	}
-
-	allbytes, err := json.Marshal(all)
+	tmp, err := json.Marshal(d1)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("marshal: %v", err)
+	}
+	if string(tmp) != s1Slice {
+		t.Errorf("json string should be \n%s\n but \n%s", s1Slice, string(tmp))
 	}
 
-	if string(allbytes) != test1Rows {
-		t.Errorf("json string should be \n%s\n but \n%s", test1Rows, string(allbytes))
-	}
-
-	data := []TestStruct1{}
-
-	if err := db.UnmarshalAll(&data, "select * from test1"); err != nil {
-		t.Fatal(err)
-	}
-
-	allbytes, err = json.Marshal(data)
-	if string(allbytes) != s1Slice {
-		t.Errorf("json string should be \n%s\n but \n%s", s1Slice, string(allbytes))
-	}
-
-	all, err = db.All("select * from test2")
+	err = db.Reset().Select().From("test2").UnmarshalAll(&d1)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("to internal data: %v", err)
 	}
-
-	allbytes, err = json.Marshal(all)
+	tmp, err = json.Marshal(d1)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("marshal: %v", err)
 	}
-
-	if string(allbytes) != test2Rows {
-		t.Errorf("json string should be \n%s\n but \n%s", test2Rows, string(allbytes))
+	if string(tmp) != s2Slice {
+		t.Errorf("json string should be \n%s\n but \n%s", s2Slice, string(tmp))
 	}
-
-	if err := db.UnmarshalAll(&data, "select * from test2"); err != nil {
-		t.Fatal(err)
-	}
-
-	allbytes, err = json.Marshal(data)
-	if string(allbytes) != s2Slice {
-		t.Errorf("json string should be \n%s\n but \n%s", s2Slice, string(allbytes))
-	}
-
 }
