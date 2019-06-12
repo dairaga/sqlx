@@ -667,7 +667,14 @@ func (r *Row) _unmarshal(prefix string, d interface{}) (err error) {
 				if err := r._unmarshal(name, nextV.Interface()); err != nil {
 					return err
 				}
+				f.Set(nextV)
 			}
+		case reflect.Struct:
+			nextV := reflect.New(f.Type())
+			if err := r._unmarshal(name, nextV.Interface()); err != nil {
+				return err
+			}
+			f.Set(nextV.Elem())
 		default:
 			switch f.Interface().(type) {
 			case []byte:

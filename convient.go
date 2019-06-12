@@ -15,7 +15,7 @@ func toCamel(v string) string {
 				x -= 'a' - 'A'
 			}
 		}
-		if x == '_' {
+		if x == '_' || x == '.' {
 			needUpper = true
 			continue
 		}
