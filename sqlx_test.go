@@ -1,14 +1,21 @@
-package sqlx
+package sqlx_test
 
 import (
 	"fmt"
+	"reflect"
 	"time"
+
+	"github.com/dairaga/sqlx"
 )
 
 const dsnFmt = "%s:%s@tcp(%s:%d)/%s?%s=%s&%s=%s"
 
 var (
 	dsn = fmt.Sprintf(dsnFmt, "test", "test", "127.0.0.1", 3306, "mytest", "charset", "utf8mb4,utf8", "parseTime", "true")
+)
+
+var (
+	timeType = reflect.TypeOf(time.Time{})
 )
 
 const (
@@ -29,4 +36,8 @@ type TestStruct1 struct {
 	ID       int64     `sqlx:"c06_u" json:"id"`
 	Name     string    `sqlx:"c16" json:"name"`
 	Birthday time.Time `sqlx:"c14" json:"birthday"`
+}
+
+func OpenDB(d, dsn string) (*sqlx.DB, error) {
+	return sqlx.OpenDB("mysql", dsn)
 }

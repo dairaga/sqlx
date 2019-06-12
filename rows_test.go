@@ -1,4 +1,4 @@
-package sqlx
+package sqlx_test
 
 import (
 	"encoding/json"
@@ -8,28 +8,30 @@ import (
 
 	gsql "database/sql"
 
+	"github.com/dairaga/sqlx"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
 	funcNames = []string{"GetBool", "GetFloat32", "GetFloat64", "GetInt", "GetInt16", "GetInt32", "GetInt64", "GetInt8", "GetString", "GetTime", "GetUint", "GetUint16", "GetUint32", "GetUint64", "GetUint8", "GetBytes"}
 	funcs     = []interface{}{
-		func(rs *Rows, name string, def bool) bool { return rs.GetBool(name, def) },
-		func(rs *Rows, name string, def float32) float32 { return rs.GetFloat32(name, def) },
-		func(rs *Rows, name string, def float64) float64 { return rs.GetFloat64(name, def) },
-		func(rs *Rows, name string, def int) int { return rs.GetInt(name, def) },
-		func(rs *Rows, name string, def int16) int16 { return rs.GetInt16(name, def) },
-		func(rs *Rows, name string, def int32) int32 { return rs.GetInt32(name, def) },
-		func(rs *Rows, name string, def int64) int64 { return rs.GetInt64(name, def) },
-		func(rs *Rows, name string, def int8) int8 { return rs.GetInt8(name, def) },
-		func(rs *Rows, name string, def string) string { return rs.GetString(name, def) },
-		func(rs *Rows, name string, def time.Time) time.Time { return rs.GetTime(name, def) },
-		func(rs *Rows, name string, def uint) uint { return rs.GetUint(name, def) },
-		func(rs *Rows, name string, def uint16) uint16 { return rs.GetUint16(name, def) },
-		func(rs *Rows, name string, def uint32) uint32 { return rs.GetUint32(name, def) },
-		func(rs *Rows, name string, def uint64) uint64 { return rs.GetUint64(name, def) },
-		func(rs *Rows, name string, def uint8) uint8 { return rs.GetUint8(name, def) },
-		func(rs *Rows, name string, def []byte) []byte { return rs.GetBytes(name, def) },
+		func(rs *sqlx.Rows, name string, def bool) bool { return rs.GetBool(name, def) },
+		func(rs *sqlx.Rows, name string, def float32) float32 { return rs.GetFloat32(name, def) },
+		func(rs *sqlx.Rows, name string, def float64) float64 { return rs.GetFloat64(name, def) },
+		func(rs *sqlx.Rows, name string, def int) int { return rs.GetInt(name, def) },
+		func(rs *sqlx.Rows, name string, def int16) int16 { return rs.GetInt16(name, def) },
+		func(rs *sqlx.Rows, name string, def int32) int32 { return rs.GetInt32(name, def) },
+		func(rs *sqlx.Rows, name string, def int64) int64 { return rs.GetInt64(name, def) },
+		func(rs *sqlx.Rows, name string, def int8) int8 { return rs.GetInt8(name, def) },
+		func(rs *sqlx.Rows, name string, def string) string { return rs.GetString(name, def) },
+		func(rs *sqlx.Rows, name string, def time.Time) time.Time { return rs.GetTime(name, def) },
+		func(rs *sqlx.Rows, name string, def uint) uint { return rs.GetUint(name, def) },
+		func(rs *sqlx.Rows, name string, def uint16) uint16 { return rs.GetUint16(name, def) },
+		func(rs *sqlx.Rows, name string, def uint32) uint32 { return rs.GetUint32(name, def) },
+		func(rs *sqlx.Rows, name string, def uint64) uint64 { return rs.GetUint64(name, def) },
+		func(rs *sqlx.Rows, name string, def uint8) uint8 { return rs.GetUint8(name, def) },
+		func(rs *sqlx.Rows, name string, def []byte) []byte { return rs.GetBytes(name, def) },
 	}
 	defTime  = time.Now()
 	defstr   = "xyz"
@@ -100,7 +102,7 @@ func TestToRowsAllNotNull(t *testing.T) {
 
 	defer db.Close()
 
-	rs, err := WrapRows(db.Query("select * from test1"))
+	rs, err := sqlx.WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +159,7 @@ func TestToRowsAllNotNull(t *testing.T) {
 
 	count := 0
 	for rs.Next() {
-		for i, name := range rs.names {
+		for i, name := range rs.Names() {
 
 			if i < len(ans[count]) {
 				for j, f := range funcs {
@@ -214,7 +216,7 @@ func TestToRowsAllNull(t *testing.T) {
 
 	defer db.Close()
 
-	rs, err := WrapRows(db.Query("select * from test2"))
+	rs, err := sqlx.WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,7 +270,7 @@ func TestToRowsAllNull(t *testing.T) {
 
 	count := 0
 	for rs.Next() {
-		for i, name := range rs.names {
+		for i, name := range rs.Names() {
 
 			if i < len(ans[count]) {
 				for j, f := range funcs {
@@ -323,7 +325,7 @@ func TestData(t *testing.T) {
 
 	defer db.Close()
 
-	rs1, err := WrapRows(db.Query("select * from test1"))
+	rs1, err := sqlx.WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -334,7 +336,7 @@ func TestData(t *testing.T) {
 		return
 	}
 
-	d1, err := rs1.r.Data()
+	d1, err := rs1.Data()
 	if err != nil {
 		t.Errorf("to internal data: %v", err)
 	}
@@ -346,7 +348,7 @@ func TestData(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", test1Row, string(tmp))
 	}
 
-	rs2, err := WrapRows(db.Query("select * from test2"))
+	rs2, err := sqlx.WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -357,7 +359,7 @@ func TestData(t *testing.T) {
 		return
 	}
 
-	d2, err := rs2.r.Data()
+	d2, err := rs2.Data()
 	if err != nil {
 		t.Errorf("to internal data: %v", err)
 	}
@@ -379,7 +381,7 @@ func TestUnmarshal(t *testing.T) {
 
 	defer db.Close()
 
-	rs1, err := WrapRows(db.Query("select * from test1"))
+	rs1, err := sqlx.WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -391,7 +393,7 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	d1 := &TestStruct1{}
-	err = rs1.r.Unmarshal(d1)
+	err = rs1.Unmarshal(d1)
 	if err != nil {
 		t.Errorf("to internal data: %v", err)
 	}
@@ -403,7 +405,7 @@ func TestUnmarshal(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", s1, string(tmp))
 	}
 
-	rs2, err := WrapRows(db.Query("select * from test2"))
+	rs2, err := sqlx.WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -414,7 +416,7 @@ func TestUnmarshal(t *testing.T) {
 		return
 	}
 
-	err = rs2.r.Unmarshal(d1)
+	err = rs2.Unmarshal(d1)
 	if err != nil {
 		t.Errorf("to internal data: %v", err)
 	}
@@ -436,7 +438,7 @@ func TestAll(t *testing.T) {
 
 	defer db.Close()
 
-	rs1, err := WrapRows(db.Query("select * from test1"))
+	rs1, err := sqlx.WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -455,7 +457,7 @@ func TestAll(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", test1Rows, string(tmp))
 	}
 
-	rs2, err := WrapRows(db.Query("select * from test2"))
+	rs2, err := sqlx.WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -483,7 +485,7 @@ func TestUnmarshalAll(t *testing.T) {
 
 	defer db.Close()
 
-	rs1, err := WrapRows(db.Query("select * from test1"))
+	rs1, err := sqlx.WrapRows(db.Query("select * from test1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -503,7 +505,7 @@ func TestUnmarshalAll(t *testing.T) {
 		t.Errorf("json string should be \n%s\n but \n%s", s1Slice, string(tmp))
 	}
 
-	rs2, err := WrapRows(db.Query("select * from test2"))
+	rs2, err := sqlx.WrapRows(db.Query("select * from test2"))
 	if err != nil {
 		t.Fatal(err)
 	}

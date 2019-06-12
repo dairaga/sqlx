@@ -93,6 +93,29 @@ func toRows(rows *sql.Rows) (*Rows, error) {
 	return rs, nil
 }
 
+// Names ...
+func (rs *Rows) Names() []string {
+	return rs.names
+}
+
+// Data ...
+func (rs *Rows) Data() (interface{}, error) {
+	if rs.x.Err() != nil {
+		return nil, rs.x.Err()
+	}
+
+	return rs.r.Data()
+}
+
+// Unmarshal ...
+func (rs *Rows) Unmarshal(x interface{}) error {
+	if rs.x.Err() != nil {
+		return rs.x.Err()
+	}
+
+	return rs.r.Unmarshal(x)
+}
+
 // Next ...
 func (rs *Rows) Next() bool {
 	//if rs.lastErr != nil {

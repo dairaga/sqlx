@@ -1,4 +1,4 @@
-package sqlx
+package sqlx_test
 
 import (
 	"encoding/json"
