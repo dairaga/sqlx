@@ -288,6 +288,11 @@ func (c *Cmd) Insert(table string, fields ...string) *Cmd {
 	return c
 }
 
+// InsertValues ...
+func (c *Cmd) InsertValues(table string, fields ...string) *Cmd {
+	return c.Insert(table, fields...).Values()
+}
+
 // Values ...
 func (c *Cmd) Values(assignments ...string) *Cmd {
 	if !c.values {

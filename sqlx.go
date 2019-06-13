@@ -169,6 +169,11 @@ func (z *sqlxobj) Insert(table string, fields ...string) *sqlxobj {
 	return z
 }
 
+func (z *sqlxobj) InsertValues(table string, fields ...string) *sqlxobj {
+	z.cmd.InsertValues(table, fields...)
+	return z
+}
+
 // Values ...
 func (z *sqlxobj) Values(assignments ...string) *sqlxobj {
 	z.cmd.Values(assignments...)
