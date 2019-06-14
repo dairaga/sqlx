@@ -366,6 +366,11 @@ func (c *Cmd) Delete(as ...string) *Cmd {
 	return c
 }
 
+// DeleteFrom ...
+func (c *Cmd) DeleteFrom(table ...string) *Cmd {
+	return c.Delete().From(table...)
+}
+
 // Replace ...
 func (c *Cmd) Replace(table string, fields ...string) *Cmd {
 	c.sb.WriteString("REPLACE")

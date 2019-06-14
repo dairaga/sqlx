@@ -216,6 +216,11 @@ func (z *sqlxobj) Delete(as ...string) *sqlxobj {
 	return z
 }
 
+func (z *sqlxobj) DeleteFrom(table ...string) *sqlxobj {
+	z.cmd.DeleteFrom(table...)
+	return z
+}
+
 // Replace ...
 func (z *sqlxobj) Replace(table string, fields ...string) *sqlxobj {
 	z.cmd.Replace(table, fields...)
