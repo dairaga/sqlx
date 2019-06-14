@@ -204,6 +204,11 @@ func (rs *Rows) UnmarshalAll(x interface{}) error {
 	return nil
 }
 
+// Get ...
+func (rs *Rows) Get(name string) interface{} {
+	return rs.r.Get(name)
+}
+
 // GetInt ...
 func (rs *Rows) GetInt(name string, def ...int) int {
 	return rs.r.GetInt(name, def...)
@@ -347,7 +352,8 @@ func (r *Row) scan() error {
 	return nil
 }
 
-func (r *Row) get(name string) interface{} {
+// Get ...
+func (r *Row) Get(name string) interface{} {
 	if r.err != nil {
 		return nil
 	}
@@ -370,7 +376,7 @@ func (r *Row) GetInt(name string, def ...int) int {
 		v = def[0]
 	}
 
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -384,7 +390,7 @@ func (r *Row) GetUint(name string, def ...uint) uint {
 		v = def[0]
 	}
 
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -398,7 +404,7 @@ func (r *Row) GetInt8(name string, def ...int8) int8 {
 		v = def[0]
 	}
 
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -411,7 +417,7 @@ func (r *Row) GetUint8(name string, def ...uint8) uint8 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -424,7 +430,7 @@ func (r *Row) GetInt16(name string, def ...int16) int16 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -437,7 +443,7 @@ func (r *Row) GetUint16(name string, def ...uint16) uint16 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -450,7 +456,7 @@ func (r *Row) GetInt32(name string, def ...int32) int32 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -463,7 +469,7 @@ func (r *Row) GetUint32(name string, def ...uint32) uint32 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -476,7 +482,7 @@ func (r *Row) GetInt64(name string, def ...int64) int64 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -489,7 +495,7 @@ func (r *Row) GetUint64(name string, def ...uint64) uint64 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -502,7 +508,7 @@ func (r *Row) GetFloat32(name string, def ...float32) float32 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -515,7 +521,7 @@ func (r *Row) GetFloat64(name string, def ...float64) float64 {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -528,7 +534,7 @@ func (r *Row) GetString(name string, def ...string) string {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -541,7 +547,7 @@ func (r *Row) GetTime(name string, def ...time.Time) time.Time {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -554,7 +560,7 @@ func (r *Row) GetBool(name string, def ...bool) bool {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		fmt.Printf("GetBool %s is nil", name)
 		return v
@@ -568,7 +574,7 @@ func (r *Row) GetBytes(name string, def ...[]byte) []byte {
 	if len(def) > 0 {
 		v = def[0]
 	}
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
@@ -582,7 +588,7 @@ func (r *Row) GetDuration(name string, def ...time.Duration) time.Duration {
 		v = def[0]
 	}
 
-	x := r.get(name)
+	x := r.Get(name)
 	if x == nil {
 		return v
 	}
