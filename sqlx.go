@@ -3,7 +3,9 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -280,6 +282,39 @@ func (z *sqlxobj) ExecContext(ctx context.Context, args ...interface{}) (sql.Res
 // Exec ...
 func (z *sqlxobj) Exec(args ...interface{}) (sql.Result, error) {
 	return z.ExecContext(context.Background(), args...)
+}
+
+func (z *sqlxobj) CountContext(ctx context.Context, args ...interface{}) (int, error) {
+
+	newSQL := z.cmd.SQL()
+	pos := strings.Index(newSQL, "FROM")
+	if pos <= 0 {
+		return 0, errors.New("sql command error")
+	}
+
+	newSQL = "SELECT count(*) as cc " + newSQL[pos:]
+
+	oldCmd := z.cmd
+
+	defer func() {
+		z.cmd = oldCmd
+	}()
+
+	newCmd := NewCmd()
+
+	newCmd.Raw(newSQL)
+	z.cmd = newCmd
+
+	row := z.QueryRowContext(ctx, args...)
+	if row.Err() != nil {
+		return 0, row.Err()
+	}
+
+	return row.GetInt("cc", 0), nil
+}
+
+func (z *sqlxobj) Count(args ...interface{}) (int, error) {
+	return z.CountContext(context.Background(), args...)
 }
 
 // QueryContext ...
