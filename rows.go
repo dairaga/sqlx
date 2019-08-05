@@ -89,7 +89,6 @@ func toRows(rows *sql.Rows) (*Rows, error) {
 		fields[i] = f
 	}
 	rs.s = reflect.StructOf(fields)
-
 	return rs, nil
 }
 
@@ -656,39 +655,42 @@ func (r *Row) _unmarshal(prefix string, d interface{}) (err error) {
 			name = fmt.Sprintf("%s.%s", prefix, name)
 		}
 
-		switch f.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			f.SetInt(r.GetInt64(name))
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			f.SetUint(r.GetUint64(name))
-		case reflect.String:
-			f.SetString(r.GetString(name))
-		case reflect.Float32, reflect.Float64:
-			f.SetFloat(r.GetFloat64(name))
-		case reflect.Bool:
-			f.SetBool(r.GetBool(name))
-		case reflect.Ptr:
-			if f.Type().Elem().Kind() == reflect.Struct {
-				nextV := reflect.New(f.Type().Elem())
+		switch f.Interface().(type) {
+		case []byte:
+			f.Set(reflect.ValueOf(r.GetBytes(name)))
+		case time.Time:
+			f.Set(reflect.ValueOf(r.GetTime(name)))
+		case time.Duration:
+			f.Set(reflect.ValueOf(r.GetDuration(name)))
+
+		default:
+			switch f.Kind() {
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				f.SetInt(r.GetInt64(name))
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				f.SetUint(r.GetUint64(name))
+			case reflect.String:
+				f.SetString(r.GetString(name))
+			case reflect.Float32, reflect.Float64:
+				f.SetFloat(r.GetFloat64(name))
+			case reflect.Bool:
+				f.SetBool(r.GetBool(name))
+			case reflect.Ptr:
+				if f.Type().Elem().Kind() == reflect.Struct {
+					nextV := reflect.New(f.Type().Elem())
+					if err := r._unmarshal(name, nextV.Interface()); err != nil {
+						return err
+					}
+					f.Set(nextV)
+				}
+			case reflect.Struct:
+				nextV := reflect.New(f.Type())
 				if err := r._unmarshal(name, nextV.Interface()); err != nil {
 					return err
 				}
-				f.Set(nextV)
-			}
-		case reflect.Struct:
-			nextV := reflect.New(f.Type())
-			if err := r._unmarshal(name, nextV.Interface()); err != nil {
-				return err
-			}
-			f.Set(nextV.Elem())
-		default:
-			switch f.Interface().(type) {
-			case []byte:
-				f.Set(reflect.ValueOf(r.GetBytes(name)))
-			case time.Time:
-				f.Set(reflect.ValueOf(r.GetTime(name)))
-			case time.Duration:
-				f.Set(reflect.ValueOf(r.GetDuration(name)))
+				f.Set(nextV.Elem())
+			default:
+				continue
 			}
 		}
 
