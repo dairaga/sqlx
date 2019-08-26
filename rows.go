@@ -188,14 +188,24 @@ func (rs *Rows) UnmarshalAll(x interface{}) error {
 	}
 
 	newV := reflect.MakeSlice(rv.Type(), 0, 0)
+	needElm := true
+	elmType := rv.Type().Elem()
+	if elmType.Kind() == reflect.Ptr {
+		elmType = elmType.Elem()
+		needElm = false
+	}
 
 	for rs.Next() {
-		d := reflect.New(rv.Type().Elem())
+		d := reflect.New(elmType)
 		if err := rs.r.Unmarshal(d.Interface()); err != nil {
 			return err
 		}
+		if needElm {
+			newV = reflect.Append(newV, d.Elem())
+		} else {
+			newV = reflect.Append(newV, d)
+		}
 
-		newV = reflect.Append(newV, d.Elem())
 	}
 
 	rv.Set(newV)
