@@ -561,7 +561,6 @@ func (r *Row) GetBool(name string, def ...bool) bool {
 	}
 	x := r.Get(name)
 	if x == nil {
-		fmt.Printf("GetBool %s is nil", name)
 		return v
 	}
 	return toBool(x, v)
